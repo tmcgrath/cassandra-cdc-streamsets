@@ -25,12 +25,18 @@
 
   <properties>
     <streamsets.version>3.1.0.0</streamsets.version>
+    <version.cassandra-all>3.11.2</version.cassandra-all>
     <slf4j.version>1.7.7</slf4j.version>
     <junit.version>4.12</junit.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.cassandra</groupId>
+      <artifactId>cassandra-all</artifactId>
+      <version>${version.cassandra-all}</version>
+    </dependency>
     <!-- Core StreamSets Dependencies for Stage Libraries -->
     <!-- Need to be without snapshot at any the point of the release -->
     <dependency>

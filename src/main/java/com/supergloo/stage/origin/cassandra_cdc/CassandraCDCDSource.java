@@ -23,8 +23,8 @@ import com.streamsets.pipeline.api.StageDef;
 
 @StageDef(
     version = 1,
-    label = "Sample Origin",
-    description = "",
+    label = "Cassandra CDC",
+    description = "oh my",
     icon = "default.png",
     execution = ExecutionMode.STANDALONE,
     recordsByRef = true,
@@ -32,7 +32,7 @@ import com.streamsets.pipeline.api.StageDef;
 )
 @ConfigGroups(value = Groups.class)
 @GenerateResourceBundle
-public class SampleDSource extends SampleSource {
+public class CassandraCDCDSource extends CassandraCDCSource {
 
   @ConfigDef(
       required = true,
