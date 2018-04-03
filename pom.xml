@@ -25,7 +25,9 @@
 
   <properties>
     <streamsets.version>3.1.0.0</streamsets.version>
-    <version.cassandra-all>3.11.2</version.cassandra-all>
+    <!-- numerous issues when I tried 3.11.2 and 3.11.0 on my mac,
+        so reverting back to 3.10 -->
+    <version.cassandra-all>3.10</version.cassandra-all>
     <slf4j.version>1.7.7</slf4j.version>
     <junit.version>4.12</junit.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
