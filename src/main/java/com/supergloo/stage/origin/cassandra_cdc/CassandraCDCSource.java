@@ -68,6 +68,25 @@ public abstract class CassandraCDCSource extends BaseSource {
       );
     }
 
+
+
+//    System.setProperty("java.io.tmpdir", "/Users/toddmcgrath/dev/apache-cassandra-3.11.2/tmp");
+
+    // I bet if I set `storagedir` then I wouldn't have to make all the cassandra.yaml mods like to point specifically
+    // to hints, saved_caches etc.
+    // https://github.com/PaytmLabs/cassandra/blob/master/src/java/org/apache/cassandra/config/DatabaseDescriptor.java#L516
+
+    // TODO - figure what's going on here
+    /*
+    java -jar -Dcassandra.config=file://<path_to_cassandra-cdc>/config/cassandra-1-cdc-tmp.yaml
+    -Dcassandra.storagedir=file:///tmp/cdc/cassandra-1/
+    <path_to_cassandra-cdc>/target/cassandra-cdc-0.0.1-SNAPSHOT.jar <path_to_cassandra-cdc>/config/reader-1.yml
+     */
+    // TM -one
+    // Shit ton of mods to cassandra.yaml beyond just CDC
+    System.setProperty("cassandra.config", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/conf/cassandra.yaml");
+    System.setProperty("cassandra.storage", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/data/");
+
 //    this.dir = Paths.get((String) YamlUtils.select(configuration, "cassandra.cdc_raw_directory"));
     // TODO get this SDC config -- or better read it from cassandra.yaml
     // since it's required below
@@ -84,23 +103,6 @@ public abstract class CassandraCDCSource extends BaseSource {
 
     commitLogReader = new CommitLogReader();
     commitLogReadHander = new CustomCommitLogReadHandler();
-
-    // TODO - figure what's going on here
-    /*
-    java -jar -Dcassandra.config=file://<path_to_cassandra-cdc>/config/cassandra-1-cdc-tmp.yaml
-    -Dcassandra.storagedir=file:///tmp/cdc/cassandra-1/
-    <path_to_cassandra-cdc>/target/cassandra-cdc-0.0.1-SNAPSHOT.jar <path_to_cassandra-cdc>/config/reader-1.yml
-     */
-    // TM -one
-    // Shit ton of mods to cassandra.yaml beyond just CDC
-    System.setProperty("cassandra.config", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/conf/cassandra.yaml");
-    System.setProperty("cassandra.storage", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/data/");
-
-//    System.setProperty("java.io.tmpdir", "/Users/toddmcgrath/dev/apache-cassandra-3.11.2/tmp");
-
-    // I bet if I set `storagedir` then I wouldn't have to make all the cassandra.yaml mods like to point specifically
-    // to hints, saved_caches etc.
-    // https://github.com/PaytmLabs/cassandra/blob/master/src/java/org/apache/cassandra/config/DatabaseDescriptor.java#L516
 
     DatabaseDescriptor.toolInitialization();
     Schema.instance.loadFromDisk(false);
