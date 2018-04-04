@@ -24,30 +24,48 @@ import com.streamsets.pipeline.api.StageDef;
 @StageDef(
     version = 1,
     label = "Cassandra CDC",
-    description = "oh my",
+    description = "oh my, oh my", // TODO
     icon = "default.png",
     execution = ExecutionMode.STANDALONE,
     recordsByRef = true,
+    resetOffset = true,
     onlineHelpRefUrl = ""
 )
 @ConfigGroups(value = Groups.class)
 @GenerateResourceBundle
 public class CassandraCDCDSource extends CassandraCDCSource {
 
-  @ConfigDef(
-      required = true,
-      type = ConfigDef.Type.STRING,
-      defaultValue = "default",
-      label = "Sample Config",
-      displayPosition = 10,
-      group = "SAMPLE"
-  )
-  public String config;
+    @ConfigDef(
+        required = true,
+        type = ConfigDef.Type.STRING,
+        defaultValue = "/etc/cassandra/cassandra.yaml",
+        label = "Cassandra config file often passed in as -Dcassandra.config", //TODO
+        description = "Location of cassandra.yaml or dse.yaml (TODO verify) such as /etc/cassandra/cassandra.yaml", //TODO
+        displayPosition = 10,
+        group = "CASSANDRA"
+    )
+    public String config;
 
-  /** {@inheritDoc} */
-  @Override
-  public String getConfig() {
-    return config;
-  }
+    /** {@inheritDoc} */
+    @Override
+    public String getConfig() {
+        return config;
+    }
 
+    @ConfigDef(
+        required = true,
+        type = ConfigDef.Type.STRING,
+        defaultValue = "",
+        label = "Cassandra Storage dir ... likely /var/lib/cassandra/data... often passed in as -Dcassandra.storagedir",//TODO
+        description = "likely $CASSANDRA_HOME/data. (TODO verify)",//TODO
+        displayPosition = 20,
+        group = "CASSANDRA"
+    )
+    public String storagedir;
+
+    /** {@inheritDoc} */
+    @Override
+    public String getStorageDir() {
+        return storagedir;
+    }
 }

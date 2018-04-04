@@ -1,4 +1,20 @@
 # cassandra-cdc-streamsets
+
+QUICKSTART TODO
+1. Figure out how to process existing files in cdc_raw?  (or is it ok to just process new)
+2. Delete files after process
+3. Pass in configuration so only process certain keyspaces and tables
+4. Make quickstart easier (change config, so flush happens more frequently)
+5. Make quickstart easier (use more defaults and pass in storagedir config instead)
+6. sdc-security settings
+7. Update code to send SDC records
+8. Sample SDC pipeline
+
+ADVANCED TOOD
+1. Cluster w/ replication factor
+2. Dedupe pipeline
+
+ 
 Cassandra CDC with StreamSets
 
 ## Quick Start

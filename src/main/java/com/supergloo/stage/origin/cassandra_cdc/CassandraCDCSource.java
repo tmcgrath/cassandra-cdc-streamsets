@@ -45,38 +45,41 @@ public abstract class CassandraCDCSource extends BaseSource {
   private static Path dir;
   private static WatchKey key;
   private static CommitLogReader commitLogReader;
-  private static CustomCommitLogReadHandler commitLogReadHander;
+  private static StreamSetsCommitLogReadHandler commitLogReadHander;
 
-  /**
-   * Gives access to the UI configuration of the stage provided by the {@link CassandraCDCDSource} class.
-   */
   public abstract String getConfig();
+  public abstract String getStorageDir();
 
   @Override
   protected List<ConfigIssue> init() {
     // Validate configuration values and open any required resources.
     List<ConfigIssue> issues = super.init();
 
-    LOG.info("Todd");
-    LOG.info("Initialized with config: {}", getConfig());
+    LOG.debug("Initialized Cassandra CDC with config: {}", getConfig());
 
-    if (getConfig().equals("invalidValue")) {
+    if (getConfig().equals("invalidValue")) { // TODO
       issues.add(
           getContext().createConfigIssue(
-              Groups.SAMPLE.name(), "config", Errors.SAMPLE_00, "Here's what's wrong..."
+              Groups.CASSANDRA.name(), "config", Errors.SAMPLE_00, "Here's what's wrong..."
           )
       );
     }
 
-
-
-//    System.setProperty("java.io.tmpdir", "/Users/toddmcgrath/dev/apache-cassandra-3.11.2/tmp");
+    if (getStorageDir().equals("invalidValue")) { // TODO
+      issues.add(
+              getContext().createConfigIssue(
+                      Groups.CASSANDRA.name(), "config", Errors.SAMPLE_00, "Here's what's wrong..."
+              )
+      );
+    }
 
     // I bet if I set `storagedir` then I wouldn't have to make all the cassandra.yaml mods like to point specifically
     // to hints, saved_caches etc.
     // https://github.com/PaytmLabs/cassandra/blob/master/src/java/org/apache/cassandra/config/DatabaseDescriptor.java#L516
 
+    // TODO verify config and storage AND... the config contains required cdc config settings such as raw dir
     // TODO - figure what's going on here
+
     /*
     java -jar -Dcassandra.config=file://<path_to_cassandra-cdc>/config/cassandra-1-cdc-tmp.yaml
     -Dcassandra.storagedir=file:///tmp/cdc/cassandra-1/
@@ -84,14 +87,20 @@ public abstract class CassandraCDCSource extends BaseSource {
      */
     // TM -one
     // Shit ton of mods to cassandra.yaml beyond just CDC
-    System.setProperty("cassandra.config", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/conf/cassandra.yaml");
-    System.setProperty("cassandra.storage", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/data/");
+//    System.setProperty("cassandra.config", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/conf/cassandra.yaml");
+//    System.setProperty("cassandra.storage", "file:///Users/toddmcgrath/dev/apache-cassandra-3.11.2/data/");
+
+    System.setProperty("cassandra.config", String.format("file://%s", getConfig()));
+    System.setProperty("cassandra.storage", String.format("file://%s", getStorageDir()));
+
 
 //    this.dir = Paths.get((String) YamlUtils.select(configuration, "cassandra.cdc_raw_directory"));
-    // TODO get this SDC config -- or better read it from cassandra.yaml
-    // since it's required below
-    this.dir = Paths.get("/tmp/cdc_raw/");
+    // TODO read following from cassandra.yaml
+    // since it's required above
+    this.dir = Paths.get("/tmp/cdc_raw/"); // TODO - throw error if cdc_raw and others not set
 
+
+    // TODO - if no issues then do the following
     try {
 
       watcher = FileSystems.getDefault().newWatchService();
@@ -102,7 +111,7 @@ public abstract class CassandraCDCSource extends BaseSource {
     }
 
     commitLogReader = new CommitLogReader();
-    commitLogReadHander = new CustomCommitLogReadHandler();
+    commitLogReadHander = new StreamSetsCommitLogReadHandler();
 
     DatabaseDescriptor.toolInitialization();
     Schema.instance.loadFromDisk(false);
@@ -120,6 +129,7 @@ public abstract class CassandraCDCSource extends BaseSource {
   /** {@inheritDoc} */
   @Override
   public String produce(String lastSourceOffset, int maxBatchSize, BatchMaker batchMaker) throws StageException {
+
     // Offsets can vary depending on the data source. Here we use an integer as an example only.
     long nextSourceOffset = 0;
     if (lastSourceOffset != null) {
@@ -129,13 +139,12 @@ public abstract class CassandraCDCSource extends BaseSource {
     int numRecords = 0;
 
     try {
+
       WatchKey aKey = watcher.take();
-//      WatchKey aKey = watcher.poll(); // TODO - pass in config
       if (!key.equals(aKey)) {
         LOG.error("WatchKey not recognized.");
-//        continue;
       }
-//
+
     } catch (InterruptedException e) {
       LOG.error(e.getMessage());
     }
@@ -150,9 +159,12 @@ public abstract class CassandraCDCSource extends BaseSource {
       WatchEvent<Path> ev = (WatchEvent<Path>) event;
       Path relativePath = ev.context();
       Path absolutePath = dir.resolve(relativePath);
+
       try {
+        commitLogReadHander.setBatchMaker(batchMaker);
+        commitLogReadHander.setContext(getContext());
         processCommitLogSegment(absolutePath);
-//      Files.delete(absolutePath);
+        Files.delete(absolutePath);
 
       } catch (IOException e) {
         LOG.error(e.getMessage());
@@ -183,6 +195,8 @@ public abstract class CassandraCDCSource extends BaseSource {
 
   private void processCommitLogSegment(Path path) throws IOException {
     LOG.warn("Processing commitlog segment...");
+
+    // TODO possible call `readCommitLogSegment method with signature that includes mutationLimit and offset info
     commitLogReader.readCommitLogSegment(commitLogReadHander, path.toFile(), false);
     LOG.warn("Commitlog segment processed.");
   }

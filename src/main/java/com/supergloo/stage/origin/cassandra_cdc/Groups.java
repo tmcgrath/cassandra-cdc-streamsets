@@ -20,7 +20,7 @@ import com.streamsets.pipeline.api.Label;
 
 @GenerateResourceBundle
 public enum Groups implements Label {
-  SAMPLE("Sample"),
+  CASSANDRA("Cassandra"),
   ;
 
   private final String label;
